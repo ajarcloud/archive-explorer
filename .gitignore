@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# SQLite
+*.db
+*.db-journal
+*.db-wal
+
+# Uploads (runtime data)
+uploads/
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# Claude Code
+.claude/
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
