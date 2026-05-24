@@ -1,9 +1,25 @@
 const BASE_URL = '/api';
 
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
+}
+
 async function request(method, path, {body, params, signal} = {}) {
   const headers = {};
   const token = localStorage.getItem('token');
   if (token) {
+    if (isTokenExpired(token)) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('auth-change'));
+      const err = new Error('Session expired');
+      err.status = 401;
+      throw err;
+    }
     headers.Authorization = `Bearer ${token}`;
   }
 
@@ -25,8 +41,10 @@ async function request(method, path, {body, params, signal} = {}) {
 
   if (res.status === 401) {
     localStorage.removeItem('token');
-    window.location.href = '/login';
-    throw new Error('Unauthorized');
+    window.dispatchEvent(new Event('auth-change'));
+    const err = new Error('Unauthorized');
+    err.status = 401;
+    throw err;
   }
 
   if (!res.ok) {

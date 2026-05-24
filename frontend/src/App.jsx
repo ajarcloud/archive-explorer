@@ -6,9 +6,13 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    const onStorage = () => setToken(localStorage.getItem('token'));
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const onAuthChange = () => setToken(localStorage.getItem('token'));
+    window.addEventListener('storage', onAuthChange);
+    window.addEventListener('auth-change', onAuthChange);
+    return () => {
+      window.removeEventListener('storage', onAuthChange);
+      window.removeEventListener('auth-change', onAuthChange);
+    };
   }, []);
 
   if (!token) {

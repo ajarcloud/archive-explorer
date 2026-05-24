@@ -39,8 +39,8 @@ def generate_api_key() -> tuple[str, str, str]:
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    request: Request = None,
     db: Session = Depends(get_db),
 ) -> User:
     # Try JWT first
@@ -57,7 +57,7 @@ def get_current_user(
                 return user
 
     # Fall back to API key
-    api_key = request.headers.get("X-API-Key") if request else None
+    api_key = request.headers.get("X-API-Key")
     if api_key:
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
         key_record = db.execute(

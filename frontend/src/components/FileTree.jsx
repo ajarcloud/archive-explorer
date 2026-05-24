@@ -28,8 +28,8 @@ function TreeNode({node}) {
       </div>
       {isDir && open && node.children && (
         <ul>
-          {node.children.map((child, i) => (
-            <TreeNode key={child.path || i} node={child} />
+          {node.children.map((child) => (
+            <TreeNode key={child.path} node={child} />
           ))}
         </ul>
       )}
@@ -44,8 +44,8 @@ export default function FileTree({tree}) {
     <div className="file-tree">
       <h3>{tree.name}</h3>
       <ul>
-        {tree.children?.map((child, i) => (
-          <TreeNode key={child.path || i} node={child} />
+        {tree.children?.map((child) => (
+          <TreeNode key={child.path} node={child} />
         ))}
       </ul>
     </div>

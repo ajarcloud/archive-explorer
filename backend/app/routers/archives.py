@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
-from ..config import UPLOAD_DIR
+from ..config import MAX_UPLOAD_SIZE, UPLOAD_DIR
 from ..database import get_db
 from ..models import Job, User
 from ..schemas import JobDetail
@@ -75,8 +75,15 @@ async def upload_archive(
     os.makedirs(session_dir, exist_ok=True)
 
     try:
+        total = 0
         async with aiofiles.open(archive_path, "wb") as f:
             while chunk := await file.read(1024 * 1024):
+                total += len(chunk)
+                if total > MAX_UPLOAD_SIZE:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail=f"File exceeds maximum upload size of {MAX_UPLOAD_SIZE // (1024 * 1024)} MB",
+                    )
                 await f.write(chunk)
 
         tree = await asyncio.to_thread(list_archive, archive_path, root_name)

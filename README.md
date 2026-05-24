@@ -47,11 +47,11 @@ Or launch both in a tmux session:
 │   │   ├── auth.py              Password hashing, JWT + API key auth
 │   │   ├── config.py            DATABASE_URL, JWT_SECRET, UPLOAD_DIR (env-driven)
 │   │   ├── database.py          SQLAlchemy engine, session factory
-│   │   ├── models.py            User + ApiKey ORM models
+│   │   ├── models.py            User + ApiKey + Job ORM models
 │   │   ├── schemas.py           Pydantic request/response models
 │   │   ├── routers/
 │   │   │   ├── auth.py          POST register/login/api-keys, GET me/api-keys
-│   │   │   └── archives.py      POST /api/archives/upload
+│   │   │   └── archives.py      POST /api/archives/upload, GET /api/archives/history
 │   │   └── services/
 │   │       └── archive.py       List archive contents without extraction
 │   ├── tests/                   pytest suite with TestClient
@@ -95,7 +95,8 @@ Base URL: `http://localhost:8000/api`
 | `GET` | `/auth/api-keys` | Yes | List API keys (prefix + metadata, no raw key) |
 | `DELETE` | `/auth/api-keys/{id}` | Yes | Revoke an API key |
 | `GET` | `/health` | No | Health check |
-| `POST` | `/archives/upload` | Yes | Multipart `file` (.zip or .tar.zst) → file tree JSON (returned inline, no persistence) |
+| `GET` | `/archives/history` | Yes | List previously uploaded archives (paginated via `?limit=&offset=`) |
+| `POST` | `/archives/upload` | Yes | Multipart `file` (.zip or .tar.zst) → file tree JSON (also persisted to history) |
 
 The upload response is a recursive tree:
 
@@ -122,13 +123,15 @@ Backend environment variables (set in `docker-compose.yml` or shell):
 |----------|---------|-------------|
 | `DATABASE_URL` | `sqlite:///backend/app.db` | SQLAlchemy connection string |
 | `JWT_SECRET` | `dev-secret-...` | JWT signing key |
-| `JWT_EXPIRE_MINUTES` | `1440` | Token expiry (24h) |
+| `JWT_EXPIRE_MINUTES` | `1440` | Token expiry in minutes (24h) |
 | `UPLOAD_DIR` | `backend/uploads/` | Temp session folder root (auto-cleaned) |
+| `MAX_UPLOAD_SIZE` | `524288000` | Max upload size in bytes (500 MB) |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:8080` | Comma-separated allowed origins |
 
 ## Testing
 
 ```bash
-# Backend — 27 tests, 91% coverage
+# Backend — 38 tests, 91% coverage
 cd backend && python -m pytest tests/ -v --cov=app --cov-report=term-missing
 
 # Frontend — 17 tests, ~62% coverage
